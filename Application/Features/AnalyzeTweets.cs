@@ -18,26 +18,70 @@ namespace Application.Features
 
         public class Response : ResponseBase
         {
-            public List<string> Tweets { get; set; }
+            public int Total { get; set; }
+            public double RatePerHour { get; set; }
+            public double RatePerMinute { get; set; }
+            public double RatePerSecond { get; set; }
         }
 
-        public class CommandHandler : IRequestHandler<Command, Response>
+        public class CommandHandler : RequestHandler<Command, Response>
         {
             private readonly IRepository _store;
+            private readonly IMessageAnalyzer _analyzer;
 
-            public CommandHandler(IRepository store)
+            public CommandHandler(IRepository store, IMessageAnalyzer analyzer)
             {
                 _store = store;
+                _analyzer = analyzer;
             }
 
-            public async Task<Response> Handle(Command cmd, CancellationToken cancellationToken)
+            protected override Response Handle(Command cmd)
             {
                 var response = new Response();
 
-                var tweets = _store.ReadAll();
+                List<string> tweets;
+                DateTime startTime;
+
+                try
+                {
+                    tweets = _store.ReadAll();
+                    startTime = _store.GetStartTime();
+                }
+                catch (Exception ex)
+                {
+                    response.Errors.Add($"An error occurred trying to read from the store {ex.Message}");
+                    return response;
+                }
                 
-                //calculate here
-                response.Tweets = tweets;
+                //Total number of tweets recieved
+                response.Total = tweets.Count;
+
+                if (tweets.Count == 0)
+                {
+                    return response;
+                }
+
+                //Tweeting rate
+                var timeSpan = startTime - DateTime.UtcNow;
+                response.RatePerSecond = _analyzer.MessageRatePerSecond(timeSpan.Seconds, tweets.Count);
+
+                //Top emojis
+
+
+                //Percent of tweets that contain emojis
+
+                
+                //Top hastags
+
+
+                //Percent of tweets that contain a url
+
+
+                //Percent of tweets that contain a photo url
+
+
+                //Top domains of urls in tweets
+
 
                 return response;
             }

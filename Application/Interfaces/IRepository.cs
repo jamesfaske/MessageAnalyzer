@@ -10,5 +10,6 @@ namespace Application.Interfaces
     {
         void AddLine(string line);
         List<string> ReadAll();
+        DateTime GetStartTime();
     }
 }

@@ -13,6 +13,7 @@ namespace Infrastructure.Data
     {
         private ConcurrentDictionary<int, string> Messages = new ConcurrentDictionary<int, string>();
         private int Index { get; set; }
+        private DateTime StartDateTime { get; set; } = DateTime.UtcNow;
 
         public void AddLine(string line)
         {
@@ -31,6 +32,11 @@ namespace Infrastructure.Data
             }
 
             return messages;
+        }
+
+        public DateTime GetStartTime()
+        {
+            return StartDateTime;
         }
     }
 }
