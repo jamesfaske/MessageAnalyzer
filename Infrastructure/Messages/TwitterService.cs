@@ -1,30 +1,31 @@
 ﻿using Application.Interfaces;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Infrastructure.Data;
 using Tweetinvi;
 
 namespace Infrastructure.Messages
 {
     public class TwitterService : ITwitterService
     {
-        public TwitterClient _twitterClient { get; set; }
+        private TwitterClient TwitterClient { get; set; }
+        private readonly IRepository _store;
 
-        public TwitterService(IOptionsMonitor<TwitterConfig> twitterConfig)
+        public TwitterService(IOptionsMonitor<TwitterConfig> twitterConfig, IRepository store)
         {
             var config = twitterConfig.CurrentValue;
-            _twitterClient = new TwitterClient(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessTokenSecret);
+            TwitterClient = new TwitterClient(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessTokenSecret);
+            _store = store;
         }
 
         public async Task StartStreamAsync()
         {
-            var sampleStream = _twitterClient.Streams.CreateSampleStream();
+            var sampleStream = TwitterClient.Streams.CreateSampleStream();
             sampleStream.TweetReceived += (sender, eventArgs) =>
             {
                 Console.WriteLine(eventArgs.Tweet);
+                _store.AddLine(eventArgs.Tweet.ToString());
             };
 
             await sampleStream.StartAsync();
