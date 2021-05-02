@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Interfaces;
+using Infrastructure.Data;
 using MediatR;
 
 namespace WebApi
@@ -38,6 +39,8 @@ namespace WebApi
 
             services.Configure<TwitterConfig>(Configuration.GetSection("TwitterApi"));
             services.AddScoped<ITwitterService, TwitterService>();
+
+            services.AddSingleton<IRepository, InMemoryStore>();
 
             //register all Mediatr Handlers in Application
             var assembly = AppDomain.CurrentDomain.Load("Application");

@@ -26,5 +26,12 @@ namespace WebApi.Controllers
             return Ok(response);
         }
 
+        [HttpGet("analytics")]
+        public async Task<IActionResult> AnalyzeTweets()
+        {
+            var response = await _mediator.Send(new AnalyzeTweets.Command());
+            return Ok(response);
+        }
+
     }
 }

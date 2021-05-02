@@ -10,7 +10,7 @@ using MediatR;
 
 namespace Application.Features
 {
-    public class StartStream
+    public class AnalyzeTweets
     {
         public class Command : IRequest<Response>
         {
@@ -18,33 +18,26 @@ namespace Application.Features
 
         public class Response : ResponseBase
         {
-            public bool StreamStarted { get; set; }
+            public List<string> Tweets { get; set; }
         }
 
         public class CommandHandler : IRequestHandler<Command, Response>
         {
-            private readonly ITwitterService _twitterService;
+            private readonly IRepository _store;
 
-            public CommandHandler(ITwitterService twitterService)
+            public CommandHandler(IRepository store)
             {
-                _twitterService = twitterService;
+                _store = store;
             }
 
             public async Task<Response> Handle(Command cmd, CancellationToken cancellationToken)
             {
                 var response = new Response();
 
-                try
-                {
-                    await _twitterService.StartStreamAsync();
-                }
-                catch (Exception ex)
-                {
-                    response.Errors.Add($"An error occurred reading the stream: {ex.Message}");
-                    return response;
-                }
-
-                response.StreamStarted = true;
+                var tweets = _store.ReadAll();
+                
+                //calculate here
+                response.Tweets = tweets;
 
                 return response;
             }
