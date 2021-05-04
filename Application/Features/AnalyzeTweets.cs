@@ -28,11 +28,13 @@ namespace Application.Features
         {
             private readonly IRepository _store;
             private readonly IMessageAnalyzer _analyzer;
+            private readonly IEmojiService _emojiService;
 
-            public CommandHandler(IRepository store, IMessageAnalyzer analyzer)
+            public CommandHandler(IRepository store, IMessageAnalyzer analyzer, IEmojiService emojiService)
             {
                 _store = store;
                 _analyzer = analyzer;
+                _emojiService = emojiService;
             }
 
             protected override Response Handle(Command cmd)
@@ -49,7 +51,7 @@ namespace Application.Features
                 }
                 catch (Exception ex)
                 {
-                    response.Errors.Add($"An error occurred trying to read from the store {ex.Message}");
+                    response.Errors.Add($"An error occurred trying to read messages from the store: {ex.Message}");
                     return response;
                 }
                 
@@ -62,11 +64,15 @@ namespace Application.Features
                 }
 
                 //Tweeting rate
-                var timeSpan = startTime - DateTime.UtcNow;
+                var timeSpan = DateTime.UtcNow - startTime;
                 response.RatePerSecond = _analyzer.MessageRatePerSecond(timeSpan.Seconds, tweets.Count);
 
                 //Top emojis
-
+                foreach (var tweet in tweets)
+                {
+                    var emojiList = _emojiService.TotalMessagesWithEmojis(tweet);
+                }
+                
 
                 //Percent of tweets that contain emojis
 

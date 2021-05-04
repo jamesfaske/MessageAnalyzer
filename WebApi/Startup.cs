@@ -12,7 +12,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application;
 using Application.Interfaces;
+using EmojiData;
+using Infrastructure;
 using Infrastructure.Data;
 using MediatR;
 
@@ -39,8 +42,9 @@ namespace WebApi
 
             services.Configure<TwitterConfig>(Configuration.GetSection("TwitterApi"));
             services.AddScoped<ITwitterService, TwitterService>();
-
             services.AddSingleton<IRepository, InMemoryStore>();
+            services.AddScoped<IEmojiService, EmojiService>();
+            services.AddScoped<IMessageAnalyzer, MessageAnalyzer>();
 
             //register all Mediatr Handlers in Application
             var assembly = AppDomain.CurrentDomain.Load("Application");
