@@ -22,6 +22,12 @@ namespace Application.Features
             public double RatePerHour { get; set; }
             public double RatePerMinute { get; set; }
             public double RatePerSecond { get; set; }
+            public string TopEmoji { get; set; }
+            public double PercentageWithUrl { get; set; }
+            public double PercentageWithPhotoUrl { get; set; }
+            public string TopHashtag { get; set; }
+            public string TopDomain { get; set; }
+            public double PercentageWithEmojis { get; set; }
         }
 
         public class CommandHandler : RequestHandler<Command, Response>
@@ -66,28 +72,93 @@ namespace Application.Features
                 //Tweeting rate
                 var timeSpan = DateTime.UtcNow - startTime;
                 response.RatePerSecond = _analyzer.MessageRatePerSecond(timeSpan.Seconds, tweets.Count);
-
-                //Top emojis
-                foreach (var tweet in tweets)
+                if (response.RatePerSecond > 0)
                 {
-                    var emojiList = _emojiService.TotalMessagesWithEmojis(tweet);
+                    response.RatePerMinute = response.RatePerSecond * 60;
+                    response.RatePerHour = response.RatePerSecond * 60 * 60; //double check
                 }
                 
+                //Top emojis
+                var tweetsWithEmojis = 0;
+                var tweetsWithUrl = 0;
+                var tweetsWithPhotoUrl = 0;
+
+                var allEmojis = new List<string>();
+                var allHashtags = new List<string>();
+                var allDomains = new List<string>();
+
+                foreach (var tweet in tweets)
+                {
+                    var emojiList = _emojiService.GetEmojisFromMessage(tweet);
+
+                    if (emojiList.Count == 0)
+                    {
+                        tweetsWithEmojis++;
+                    }
+                    else
+                    {
+                        allEmojis.AddRange(emojiList);
+                    }
+
+                    var hashtagList = _analyzer.GetHashtagsFromMessage(tweet);
+
+                    if (hashtagList.Count > 0)
+                    {
+                        allHashtags.AddRange(emojiList);
+                    }
+
+                    var domainList = _analyzer.GetDomainsFromMessage(tweet);
+
+                    if (domainList.Count == 0)
+                    {
+                        tweetsWithEmojis++;
+                    }
+                    else
+                    {
+                        allDomains.AddRange(emojiList);
+                    }
+
+                    var hasUrl = _analyzer.DoesContainsUrl(tweet);
+                    if (hasUrl)
+                    {
+                        tweetsWithUrl++;
+                    }
+
+                    var hasPhotoUrl = _analyzer.DoesContainsPhotoUrl(tweet);
+                    if (hasPhotoUrl)
+                    {
+                        tweetsWithPhotoUrl++;
+                    }
+                }
+
+                response.TopEmoji = allEmojis
+                    .GroupBy(e => e)
+                    .OrderByDescending(e => e.Count())
+                    .Select(e => e.Key)
+                    .FirstOrDefault();
 
                 //Percent of tweets that contain emojis
+                response.PercentageWithEmojis = (double) tweetsWithEmojis / tweets.Count;
 
-                
                 //Top hastags
-
+                response.TopHashtag = allHashtags
+                    .GroupBy(e => e)
+                    .OrderByDescending(e => e.Count())
+                    .Select(e => e.Key)
+                    .FirstOrDefault();
 
                 //Percent of tweets that contain a url
-
+                response.PercentageWithUrl = (double) tweetsWithUrl / tweets.Count;
 
                 //Percent of tweets that contain a photo url
-
+                response.PercentageWithPhotoUrl = (double) tweetsWithPhotoUrl / tweets.Count;
 
                 //Top domains of urls in tweets
-
+                response.TopDomain = allDomains
+                    .GroupBy(e => e)
+                    .OrderByDescending(e => e.Count())
+                    .Select(e => e.Key)
+                    .FirstOrDefault();
 
                 return response;
             }

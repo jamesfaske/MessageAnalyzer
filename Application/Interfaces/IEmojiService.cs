@@ -8,6 +8,6 @@ namespace Application.Interfaces
 {
     public interface IEmojiService
     {
-        List<string> TotalMessagesWithEmojis(string message);
+        List<string> GetEmojisFromMessage(string message);
     }
 }

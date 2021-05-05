@@ -12,7 +12,7 @@ namespace Infrastructure
 {
     public class EmojiService : IEmojiService
     {
-        public List<string> TotalMessagesWithEmojis(string message)
+        public List<string> GetEmojisFromMessage(string message)
         {
             var emojiList = new List<string>();
 
