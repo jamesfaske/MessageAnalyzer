@@ -43,6 +43,13 @@ namespace Application.Features
                 _emojiService = emojiService;
             }
 
+            //The handle method cannot be accessed due to it's protection level for integration testing
+            //so this wrapper was created as a work-around. See https://github.com/jbogard/MediatR/issues/526
+            public Response HandleWrapper(Command cmd)
+            {
+                return Handle(cmd);
+            }
+
             protected override Response Handle(Command cmd)
             {
                 var response = new Response();
@@ -70,7 +77,16 @@ namespace Application.Features
                 }
 
                 //Tweeting rate
-                response.RatePerSecond = _analyzer.MessageRatePerSecond(startTime, tweets.Count);
+                try
+                {
+                    response.RatePerSecond = _analyzer.MessageRatePerSecond(startTime, tweets.Count);
+                }
+                catch (Exception ex)
+                {
+                    response.Errors.Add($"An error occurred trying to calculate the message rate: {ex.Message}");
+                    return response;
+                }
+
                 if (response.RatePerSecond > 0)
                 {
                     response.RatePerMinute = response.RatePerSecond * 60;
@@ -90,12 +106,9 @@ namespace Application.Features
                 {
                     var emojiList = _emojiService.GetEmojisFromMessage(tweet);
 
-                    if (emojiList.Count == 0)
+                    if (emojiList.Count > 0)
                     {
                         tweetsWithEmojis++;
-                    }
-                    else
-                    {
                         allEmojis.AddRange(emojiList);
                     }
 
@@ -103,18 +116,14 @@ namespace Application.Features
 
                     if (hashtagList.Count > 0)
                     {
-                        allHashtags.AddRange(emojiList);
+                        allHashtags.AddRange(hashtagList);
                     }
 
                     var domainList = _analyzer.GetDomainsFromMessage(tweet);
 
-                    if (domainList.Count == 0)
+                    if (domainList.Count > 0)
                     {
-                        tweetsWithEmojis++;
-                    }
-                    else
-                    {
-                        allDomains.AddRange(emojiList);
+                        allDomains.AddRange(domainList);
                     }
 
                     var hasUrl = _analyzer.DoesContainUrl(tweet);
@@ -137,7 +146,7 @@ namespace Application.Features
                     .FirstOrDefault();
 
                 //Percent of tweets that contain emojis
-                response.PercentageWithEmojis = (double) tweetsWithEmojis / tweets.Count;
+                response.PercentageWithEmojis = (double) tweetsWithEmojis / tweets.Count * 100;
 
                 //Top hastags
                 response.TopHashtag = allHashtags
@@ -147,10 +156,10 @@ namespace Application.Features
                     .FirstOrDefault();
 
                 //Percent of tweets that contain a url
-                response.PercentageWithUrl = (double) tweetsWithUrl / tweets.Count;
+                response.PercentageWithUrl = (double) tweetsWithUrl / tweets.Count * 100;
 
                 //Percent of tweets that contain a photo url
-                response.PercentageWithPhotoUrl = (double) tweetsWithPhotoUrl / tweets.Count;
+                response.PercentageWithPhotoUrl = (double) tweetsWithPhotoUrl / tweets.Count * 100;
 
                 //Top domains of urls in tweets
                 response.TopDomain = allDomains
