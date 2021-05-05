@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
 using Application.Interfaces;
 using EmojiData;
@@ -23,11 +19,6 @@ namespace Infrastructure
             }
 
             return emojiList;
-        }
-
-        private void Callback(Match match, SingleEmoji emoji)
-        {
-            Console.WriteLine("Found it!" + emoji);
         }
     }
 }
