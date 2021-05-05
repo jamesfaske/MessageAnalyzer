@@ -10,14 +10,16 @@ namespace Application
     public class MessageAnalyzer : IMessageAnalyzer
     {
         private readonly Regex _hashtagRegex = new Regex(@"#\w+");
-        private readonly Regex _urlRegex = new Regex(@"^(ht|f)tp(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$");
-        private readonly Regex _twitterPhotoUrlRegex = new Regex(@"^(ht|f)tp(s?)\:\/\/pic.twitter.com*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$");
+        private readonly Regex _urlRegex = new Regex(@"(ht|f)tp(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?");
+        private readonly Regex _twitterPhotoUrlRegex = new Regex(@"(ht|f)tp(s?)\:\/\/pic.twitter.com*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?");
 
-        public double MessageRatePerSecond(int timeSpanSeconds, int messageCount)
+        public double MessageRatePerSecond(DateTime startTimeUtc, int messageCount)
         {
-            if (timeSpanSeconds < 1)
+            var now = DateTime.UtcNow;
+
+            if (startTimeUtc > now)
             {
-                throw new ArgumentException("value must be greater than 0", nameof(timeSpanSeconds));
+                throw new ArgumentException("value cannot be in the future", nameof(startTimeUtc));
             }
 
             if (messageCount == 0)
@@ -25,7 +27,9 @@ namespace Application
                 throw new ArgumentException("value must be greater than 0", nameof(messageCount));
             }
 
-            return (double) messageCount / timeSpanSeconds;
+            var timeSpan = now - startTimeUtc;
+
+            return (double) messageCount / timeSpan.TotalSeconds;
         }
 
         public List<string> GetHashtagsFromMessage(string message)
@@ -40,12 +44,12 @@ namespace Application
             return hashtagList;
         }
 
-        public bool DoesContainsUrl(string message)
+        public bool DoesContainUrl(string message)
         {
             return _urlRegex.IsMatch(message);
         }
 
-        public bool DoesContainsPhotoUrl(string message)
+        public bool DoesContainPhotoUrl(string message)
         {
             return _twitterPhotoUrlRegex.IsMatch(message);
         }

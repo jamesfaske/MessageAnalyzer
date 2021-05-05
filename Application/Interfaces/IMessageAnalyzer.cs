@@ -5,10 +5,10 @@ namespace Application.Interfaces
 {
     public interface IMessageAnalyzer
     {
-        double MessageRatePerSecond(int timeSpanSeconds, int messageCount);
+        double MessageRatePerSecond(DateTime startTimeUtc, int messageCount);
         List<string> GetHashtagsFromMessage(string message);
-        public bool DoesContainsUrl(string message);
-        public bool DoesContainsPhotoUrl(string message);
+        public bool DoesContainUrl(string message);
+        public bool DoesContainPhotoUrl(string message);
         public List<string> GetDomainsFromMessage(string message);
     }
 }

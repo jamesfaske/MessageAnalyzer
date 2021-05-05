@@ -70,12 +70,11 @@ namespace Application.Features
                 }
 
                 //Tweeting rate
-                var timeSpan = DateTime.UtcNow - startTime;
-                response.RatePerSecond = _analyzer.MessageRatePerSecond(timeSpan.Seconds, tweets.Count);
+                response.RatePerSecond = _analyzer.MessageRatePerSecond(startTime, tweets.Count);
                 if (response.RatePerSecond > 0)
                 {
                     response.RatePerMinute = response.RatePerSecond * 60;
-                    response.RatePerHour = response.RatePerSecond * 60 * 60; //double check
+                    response.RatePerHour = response.RatePerSecond * 60 * 60;
                 }
                 
                 //Top emojis
@@ -118,13 +117,13 @@ namespace Application.Features
                         allDomains.AddRange(emojiList);
                     }
 
-                    var hasUrl = _analyzer.DoesContainsUrl(tweet);
+                    var hasUrl = _analyzer.DoesContainUrl(tweet);
                     if (hasUrl)
                     {
                         tweetsWithUrl++;
                     }
 
-                    var hasPhotoUrl = _analyzer.DoesContainsPhotoUrl(tweet);
+                    var hasPhotoUrl = _analyzer.DoesContainPhotoUrl(tweet);
                     if (hasPhotoUrl)
                     {
                         tweetsWithPhotoUrl++;
